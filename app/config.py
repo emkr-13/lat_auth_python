@@ -9,22 +9,20 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        
+
     @property
     def tortoise_config(self) -> dict:
         return {
             "connections": {"default": self.database_url},
             "apps": {
                 "models": {
-                    "models": ["app.models"],  # Sesuaikan dengan lokasi model Anda
+                    "models": ["app.models"],
                     "default_connection": "default",
                 }
             },
         }
-        
-print("Loading settings...")
-settings = Settings()
-print(f"Database URL: {settings.database_url}")
-print(f"Secret Key: {settings.secret_key}")
 
 settings = Settings()
+print(settings.tortoise_config)
+print("Database URL:", settings.database_url)
+print("Secret Key:", settings.secret_key)
