@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
-from routers import auth, users
-from config import settings
+from app.routers import auth, users
+from app.config import settings
+from app.tortoise_config import tortoise_config
 
 app = FastAPI()
 
@@ -12,8 +13,7 @@ app.include_router(users.router)
 # Konfigurasi Tortoise ORM
 register_tortoise(
     app,
-    db_url=settings.database_url,
-    modules={"models": ["models"]},
+    config=tortoise_config,
     generate_schemas=True,
     add_exception_handlers=True,
 )

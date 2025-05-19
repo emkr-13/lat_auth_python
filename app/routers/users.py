@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from models import User
-from schemas import UserCreate, UserInDB
+from app.models import User
+from app.schemas import UserCreate, UserInDB
 from tortoise.exceptions import DoesNotExist
 from passlib.context import CryptContext
 import uuid

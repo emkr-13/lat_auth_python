@@ -3,9 +3,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from models import User
-from schemas import UserCreate, Token
-from config import settings
+from app.models import User
+from app.schemas import UserCreate, Token
+from app.config import settings
 
 router = APIRouter(tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -25,7 +25,7 @@ def create_access_token(data: dict, expires_delta: timedelta):
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await User.get_or_none(email=form_data.username)
-    if not user or not verify_password(form_data.password, user.password):
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
