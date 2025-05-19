@@ -4,8 +4,9 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from app.models import User
-from app.schemas import UserCreate, Token
+from app.schemas import UserCreate, Token, UserInDB
 from app.config import settings
+from tortoise.exceptions import IntegrityError
 
 router = APIRouter(tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -21,6 +22,37 @@ def create_access_token(data: dict, expires_delta: timedelta):
     expire = datetime.utcnow() + expires_delta
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+
+@router.post("/register", response_model=UserInDB)
+async def register(user_data: UserCreate):
+    # Check if user already exists
+    if await User.exists(email=user_data.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    if await User.exists(username=user_data.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already taken"
+        )
+    
+    # Create new user
+    hashed_password = get_password_hash(user_data.password)
+    try:
+        user = await User.create(
+            email=user_data.email,
+            username=user_data.username,
+            fullname=user_data.fullname,
+            password_hash=hashed_password
+        )
+        return user
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Error creating user"
+        )
 
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
