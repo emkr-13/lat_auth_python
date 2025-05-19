@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     database_url: str
@@ -6,9 +6,13 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_days: int
+    app_port: int = 4000
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="allow"
+    )
 
     @property
     def tortoise_config(self) -> dict:
@@ -16,13 +20,10 @@ class Settings(BaseSettings):
             "connections": {"default": self.database_url},
             "apps": {
                 "models": {
-                    "models": ["app.models"],
+                    "models": ["app.models", "aerich.models"],
                     "default_connection": "default",
                 }
             },
         }
 
 settings = Settings()
-print(settings.tortoise_config)
-print("Database URL:", settings.database_url)
-print("Secret Key:", settings.secret_key)
